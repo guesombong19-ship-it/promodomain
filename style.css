@@ -358,6 +358,123 @@ body {
 }
 .cart-overlay.show { display: block; opacity: 1; }
 
+/* PAYMENT MODAL */
+.payment-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    z-index: 2000; display: none; opacity: 0; transition: opacity 0.3s ease;
+}
+.payment-overlay.show { display: block; opacity: 1; }
+.payment-modal {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+    width: 90%; max-width: 480px; max-height: 90vh; overflow-y: auto;
+    background: var(--white); border-radius: var(--radius); z-index: 2001;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3); padding: 32px;
+    display: none; transition: transform 0.3s ease, opacity 0.3s ease;
+    opacity: 0;
+}
+.payment-modal.open { display: block; transform: translate(-50%, -50%) scale(1); opacity: 1; }
+.payment-close {
+    position: absolute; top: 16px; right: 16px; background: none; border: none;
+    font-size: 1.5rem; cursor: pointer; color: var(--gray); transition: var(--transition);
+}
+.payment-close:hover { color: var(--red); }
+.payment-step h3 { margin-bottom: 16px; font-size: 1.3rem; }
+.payment-back {
+    background: none; border: none; color: var(--gray); cursor: pointer;
+    font-size: 0.9rem; margin-bottom: 12px; padding: 0; font-family: 'Poppins', sans-serif;
+}
+.payment-back:hover { color: var(--red); }
+.payment-summary {
+    background: var(--gray-light); border-radius: var(--radius-sm);
+    padding: 16px; margin-bottom: 20px;
+}
+.payment-summary .summary-item {
+    display: flex; justify-content: space-between; font-size: 0.9rem; padding: 4px 0;
+}
+.payment-summary .summary-total {
+    display: flex; justify-content: space-between; font-weight: 700;
+    font-size: 1.1rem; margin-top: 8px; padding-top: 8px;
+    border-top: 1px solid var(--gray);
+}
+.payment-methods { display: flex; flex-direction: column; gap: 12px; }
+.payment-method {
+    display: flex; align-items: center; gap: 16px; padding: 16px;
+    border: 2px solid var(--gray-light); border-radius: var(--radius-sm);
+    cursor: pointer; transition: var(--transition);
+}
+.payment-method:hover { border-color: var(--red); background: var(--off-white); }
+.method-icon { font-size: 2rem; }
+.method-info { flex: 1; }
+.method-info h4 { font-size: 1rem; margin-bottom: 2px; }
+.method-info p { font-size: 0.8rem; color: var(--gray); }
+.method-arrow { font-size: 1.5rem; color: var(--gray); }
+
+/* QRIS */
+.qris-loading { text-align: center; padding: 40px 0; }
+.qris-content { text-align: center; }
+.qris-qr {
+    background: white; border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm); padding: 16px; margin-bottom: 16px;
+    display: inline-block;
+}
+.qris-qr svg { width: 220px; height: 220px; }
+.qris-amount { font-size: 1.8rem; font-weight: 800; color: var(--red); margin-bottom: 4px; }
+.qris-expire { font-size: 0.85rem; color: var(--gray); margin-bottom: 8px; }
+.qris-note { font-size: 0.8rem; color: var(--gray); font-style: italic; }
+.qris-status, .crypto-status {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: 16px; padding: 12px; background: #FFF3CD; border-radius: var(--radius-sm);
+    font-size: 0.9rem; color: #856404;
+}
+.status-dot {
+    width: 10px; height: 10px; border-radius: 50%; background: #FFC107;
+}
+.status-dot.pulse { animation: statusPulse 1.5s infinite; }
+@keyframes statusPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.3); }
+}
+.qris-error, .crypto-error { text-align: center; padding: 30px 0; }
+.qris-error p, .crypto-error p { color: var(--gray); margin-bottom: 16px; }
+
+/* CRYPTO */
+.crypto-form { display: flex; flex-direction: column; gap: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group label { font-weight: 600; font-size: 0.9rem; }
+.form-group select, .form-group input {
+    padding: 12px; border: 2px solid var(--gray-light); border-radius: var(--radius-sm);
+    font-family: 'Poppins', sans-serif; font-size: 0.95rem; outline: none;
+    transition: var(--transition);
+}
+.form-group select:focus, .form-group input:focus { border-color: var(--red); }
+.crypto-loading { text-align: center; padding: 40px 0; }
+.crypto-content { text-align: center; }
+.crypto-address { margin-bottom: 16px; }
+.crypto-address label { font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 6px; }
+.address-box {
+    background: var(--gray-light); padding: 12px; border-radius: var(--radius-sm);
+    font-family: monospace; font-size: 0.85rem; word-break: break-all;
+    cursor: pointer; transition: var(--transition); position: relative;
+}
+.address-box:hover { background: #E5E7EB; }
+.address-box::after { content: 'Klik untuk copy'; position: absolute; bottom: -20px;
+    left: 50%; transform: translateX(-50%); font-size: 0.75rem; color: var(--gray);
+    font-family: 'Poppins', sans-serif; white-space: nowrap;
+}
+.crypto-usd-amount { font-size: 1.5rem; font-weight: 800; color: var(--red); margin: 12px 0 4px; }
+.crypto-expire { font-size: 0.85rem; color: var(--gray); margin-bottom: 16px; }
+
+/* SUCCESS */
+.success-icon {
+    width: 80px; height: 80px; border-radius: 50%; background: #059669;
+    color: white; font-size: 2.5rem; display: flex; align-items: center;
+    justify-content: center; margin: 0 auto 20px;
+}
+.success-detail {
+    background: var(--gray-light); border-radius: var(--radius-sm);
+    padding: 16px; margin: 16px 0; text-align: left; font-size: 0.9rem;
+}
+
 /* RESPONSIVE */
 @media (max-width: 768px) {
     .nav-links { display: none; }
@@ -381,4 +498,6 @@ body {
     .cart-panel { width: 100%; right: -100%; }
     .section-header h2 { font-size: 1.6rem; }
     .cta-section h2 { font-size: 1.6rem; }
+    .payment-modal { width: 95%; padding: 24px; }
+    .qris-qr svg { width: 180px; height: 180px; }
 }

@@ -275,13 +275,129 @@
                 <span>Total:</span>
                 <span id="cart-total">Rp 0</span>
             </div>
-            <button class="btn btn-primary btn-block" onclick="checkout()">Checkout</button>
+            <button class="btn btn-primary btn-block" onclick="openCheckout()">Checkout</button>
         </div>
     </div>
 
     <button class="cart-toggle" id="cart-toggle" onclick="toggleCart()">
         🛒 <span class="cart-count" id="cart-count">0</span>
     </button>
+
+    <!-- PAYMENT MODAL -->
+    <div class="payment-overlay" id="payment-overlay" onclick="closePaymentModal()"></div>
+    <div class="payment-modal" id="payment-modal">
+        <button class="payment-close" onclick="closePaymentModal()">&times;</button>
+
+        <!-- Step 1: Choose method -->
+        <div class="payment-step" id="step-choose">
+            <h3>Pilih Metode Pembayaran</h3>
+            <div class="payment-summary" id="payment-summary"></div>
+            <div class="payment-methods">
+                <div class="payment-method" onclick="selectMethod('qris')">
+                    <div class="method-icon">📱</div>
+                    <div class="method-info">
+                        <h4>QRIS</h4>
+                        <p>Bayar pakai QR Code semua e-wallet & mobile banking</p>
+                    </div>
+                    <span class="method-arrow">&rsaquo;</span>
+                </div>
+                <div class="payment-method" onclick="selectMethod('crypto')">
+                    <div class="method-icon">💰</div>
+                    <div class="method-info">
+                        <h4>Crypto</h4>
+                        <p>Bayar pakai USDT/USDC (BSC, ETH, SOL, dll)</p>
+                    </div>
+                    <span class="method-arrow">&rsaquo;</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2a: QRIS -->
+        <div class="payment-step" id="step-qris" style="display:none;">
+            <button class="payment-back" onclick="showStep('step-choose')">&larr; Kembali</button>
+            <h3>Bayar dengan QRIS</h3>
+            <div class="qris-loading" id="qris-loading">
+                <div class="spinner"></div>
+                <p>Memuat QR Code...</p>
+            </div>
+            <div class="qris-content" id="qris-content" style="display:none;">
+                <div class="qris-qr" id="qris-qr"></div>
+                <div class="qris-info">
+                    <div class="qris-amount" id="qris-total"></div>
+                    <p class="qris-expire" id="qris-expire"></p>
+                    <p class="qris-note">Bayar tepat sesuai nominal yang tertera. Kode unik sudah termasuk.</p>
+                </div>
+                <div class="qris-status" id="qris-status">
+                    <div class="status-dot pulse"></div>
+                    <span>Menunggu pembayaran...</span>
+                </div>
+            </div>
+            <div class="qris-error" id="qris-error" style="display:none;">
+                <p>Terjadi kesalahan. Silakan coba lagi.</p>
+                <button class="btn btn-primary" onclick="retryQRIS()">Coba Lagi</button>
+            </div>
+        </div>
+
+        <!-- Step 2b: Crypto -->
+        <div class="payment-step" id="step-crypto" style="display:none;">
+            <button class="payment-back" onclick="showStep('step-choose')">&larr; Kembali</button>
+            <h3>Bayar dengan Crypto</h3>
+            <div class="crypto-form" id="crypto-form">
+                <div class="form-group">
+                    <label>Chain</label>
+                    <select id="crypto-chain">
+                        <option value="BSC">BSC (BEP20)</option>
+                        <option value="ETH">Ethereum (ERC20)</option>
+                        <option value="BASE">Base</option>
+                        <option value="POLYGON">Polygon</option>
+                        <option value="SOL">Solana</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Token</label>
+                    <select id="crypto-token">
+                        <option value="USDT">USDT</option>
+                        <option value="USDC">USDC</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Nama (opsional)</label>
+                    <input type="text" id="crypto-name" placeholder="Nama Anda">
+                </div>
+                <button class="btn btn-primary btn-block" onclick="createCryptoPayment()">Buat Order Crypto</button>
+            </div>
+            <div class="crypto-loading" id="crypto-loading" style="display:none;">
+                <div class="spinner"></div>
+                <p>Membuat order...</p>
+            </div>
+            <div class="crypto-content" id="crypto-content" style="display:none;">
+                <div class="crypto-address">
+                    <label>Deposit Address</label>
+                    <div class="address-box" id="crypto-address"></div>
+                </div>
+                <div class="crypto-amount" id="crypto-usd-amount"></div>
+                <p class="crypto-expire" id="crypto-expire"></p>
+                <a class="btn btn-primary btn-block" id="crypto-pay-btn" href="#" target="_blank">Bayar Sekarang</a>
+                <div class="crypto-status" id="crypto-status">
+                    <div class="status-dot pulse"></div>
+                    <span>Menunggu transfer on-chain...</span>
+                </div>
+            </div>
+            <div class="crypto-error" id="crypto-error" style="display:none;">
+                <p>Terjadi kesalahan. Silakan coba lagi.</p>
+                <button class="btn btn-primary" onclick="createCryptoPayment()">Coba Lagi</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Success -->
+        <div class="payment-step" id="step-success" style="display:none;">
+            <div class="success-icon">&#10003;</div>
+            <h3>Pembayaran Berhasil!</h3>
+            <p>Domain Anda akan segera diproses. Terima kasih!</p>
+            <div class="success-detail" id="success-detail"></div>
+            <button class="btn btn-primary" onclick="closePaymentModal()">Tutup</button>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

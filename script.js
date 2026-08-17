@@ -1,4 +1,6 @@
-// ==================== RDAP ENDPOINTS ====================
+// ==================== CONFIG ====================
+// Ganti URL ini dengan URL Worker Cloudflare kamu setelah deploy
+const API_BASE = window.location.origin + '/api';
 const rdapEndpoints = {
     '.com':   'https://rdap.verisign.com/com/v1/domain/',
     '.net':   'https://rdap.verisign.com/net/v1/domain/',
@@ -107,11 +109,7 @@ function toggleCart() {
     overlay.classList.toggle('show');
 }
 
-function checkout() {
-    if (cart.length === 0) return;
-    const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-    alert('Terima kasih! Total pembayaran Anda: ' + formatRupiah(total) + '\n\nFitur pembayaran akan segera tersedia.');
-}
+// ==================== RDAP ENDPOINTS ====================
 
 // ==================== DOMAIN SEARCH ====================
 function searchDomain() {
@@ -312,6 +310,180 @@ function setupSearchEnter() {
             if (e.key === 'Enter') searchDomain();
         });
     }
+}
+
+// ==================== PAYMENT ====================
+let currentTxnId = null;
+let statusInterval = null;
+
+function openCheckout() {
+    if (cart.length === 0) return;
+    const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const summaryEl = document.getElementById('payment-summary');
+    summaryEl.innerHTML = cart.map(function(item) {
+        return '<div class="summary-item"><span>Domain ' + item.ext + (item.qty > 1 ? ' x' + item.qty : '') + '</span><span>' + formatRupiah(item.price * item.qty) + '</span></div>';
+    }).join('') + '<div class="summary-total"><span>Total</span><span>' + formatRupiah(total) + '</span></div>';
+
+    toggleCart();
+    showStep('step-choose');
+    document.getElementById('payment-overlay').classList.add('show');
+    document.getElementById('payment-modal').classList.add('open');
+}
+
+function closePaymentModal() {
+    document.getElementById('payment-overlay').classList.remove('show');
+    document.getElementById('payment-modal').classList.remove('open');
+    if (statusInterval) { clearInterval(statusInterval); statusInterval = null; }
+    currentTxnId = null;
+}
+
+function showStep(stepId) {
+    document.querySelectorAll('.payment-step').forEach(function(s) { s.style.display = 'none'; });
+    document.getElementById(stepId).style.display = 'block';
+}
+
+function selectMethod(method) {
+    if (method === 'qris') {
+        createQRISPayment();
+    } else {
+        showStep('step-crypto');
+        document.getElementById('crypto-form').style.display = 'flex';
+        document.getElementById('crypto-loading').style.display = 'none';
+        document.getElementById('crypto-content').style.display = 'none';
+        document.getElementById('crypto-error').style.display = 'none';
+    }
+}
+
+// --- QRIS ---
+function createQRISPayment() {
+    if (cart.length === 0) return;
+    const total = cart.reduce(function(sum, item) { return sum + (item.price * item.qty); }, 0);
+
+    showStep('step-qris');
+    document.getElementById('qris-loading').style.display = 'block';
+    document.getElementById('qris-content').style.display = 'none';
+    document.getElementById('qris-error').style.display = 'none';
+
+    fetch(API_BASE + '/payments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: total, customer_name: 'DomainKu Customer' })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.success) {
+            var d = res.data;
+            currentTxnId = d.transactionId;
+            document.getElementById('qris-qr').innerHTML = d.qrCodeSvg;
+            document.getElementById('qris-total').textContent = d.totalFormatted + ' (termasuk kode unik ' + d.uniqueCode + ')';
+            document.getElementById('qris-expire').textContent = 'Berlaku hingga ' + d.expiredAt;
+            document.getElementById('qris-loading').style.display = 'none';
+            document.getElementById('qris-content').style.display = 'block';
+            startStatusPolling(d.transactionId);
+        } else {
+            throw new Error(res.error || 'Gagal membuat pembayaran');
+        }
+    })
+    .catch(function() {
+        document.getElementById('qris-loading').style.display = 'none';
+        document.getElementById('qris-error').style.display = 'block';
+    });
+}
+
+function retryQRIS() {
+    createQRISPayment();
+}
+
+// --- CRYPTO ---
+function createCryptoPayment() {
+    if (cart.length === 0) return;
+    var total = cart.reduce(function(sum, item) { return sum + (item.price * item.qty); }, 0);
+    var amountUsd = parseFloat((total / 16000).toFixed(2));
+    if (amountUsd < 0.01) amountUsd = 0.01;
+    var chain = document.getElementById('crypto-chain').value;
+    var token = document.getElementById('crypto-token').value;
+    var name = document.getElementById('crypto-name').value;
+
+    document.getElementById('crypto-form').style.display = 'none';
+    document.getElementById('crypto-loading').style.display = 'block';
+    document.getElementById('crypto-content').style.display = 'none';
+    document.getElementById('crypto-error').style.display = 'none';
+
+    var payload = { amount_usd: amountUsd, chain: chain, token: token };
+    if (name) payload.customer_name = name;
+
+    fetch(API_BASE + '/crypto-payments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.success) {
+            var d = res.data;
+            currentTxnId = d.transactionId;
+            document.getElementById('crypto-address').textContent = d.deposit_address;
+            document.getElementById('crypto-usd-amount').textContent = '$' + d.amount_usd + ' ' + d.token;
+            document.getElementById('crypto-expire').textContent = 'Berlaku hingga ' + new Date(d.expires_at).toLocaleString('id-ID');
+            document.getElementById('crypto-pay-btn').href = d.payment_url;
+            document.getElementById('crypto-loading').style.display = 'none';
+            document.getElementById('crypto-content').style.display = 'block';
+            startCryptoStatusPolling(d.transactionId);
+            // Copy address on click
+            document.getElementById('crypto-address').onclick = function() {
+                navigator.clipboard.writeText(d.deposit_address).then(function() {
+                    document.getElementById('crypto-address').style.background = '#D1FAE5';
+                    setTimeout(function() { document.getElementById('crypto-address').style.background = ''; }, 1000);
+                });
+            };
+        } else {
+            throw new Error(res.error || 'Gagal membuat order');
+        }
+    })
+    .catch(function() {
+        document.getElementById('crypto-loading').style.display = 'none';
+        document.getElementById('crypto-error').style.display = 'block';
+    });
+}
+
+// --- STATUS POLLING ---
+function startStatusPolling(txnId) {
+    if (statusInterval) clearInterval(statusInterval);
+    statusInterval = setInterval(function() {
+        fetch(API_BASE + '/status/' + txnId)
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+            if (res.success && res.data.status === 'PAID') {
+                clearInterval(statusInterval);
+                showPaymentSuccess(res.data);
+            }
+        }).catch(function() {});
+    }, 5000);
+}
+
+function startCryptoStatusPolling(txnId) {
+    if (statusInterval) clearInterval(statusInterval);
+    statusInterval = setInterval(function() {
+        fetch(API_BASE + '/crypto-status/' + txnId)
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+            if (res.success && res.data.status === 'PAID') {
+                clearInterval(statusInterval);
+                showPaymentSuccess(res.data);
+            }
+        }).catch(function() {});
+    }, 5000);
+}
+
+function showPaymentSuccess(data) {
+    var detail = '<p><strong>Transaction ID:</strong> ' + (data.transactionId || currentTxnId) + '</p>';
+    if (data.totalAmount) detail += '<p><strong>Total Dibayar:</strong> ' + formatRupiah(data.totalAmount) + '</p>';
+    if (data.amount_usd) detail += '<p><strong>Amount:</strong> $' + data.amount_usd + ' ' + (data.asset_received || data.token) + '</p>';
+    if (data.tx_hash) detail += '<p><strong>TX Hash:</strong> <span style="font-size:0.8rem;word-break:break-all;">' + data.tx_hash + '</span></p>';
+    document.getElementById('success-detail').innerHTML = detail;
+    showStep('step-success');
+    cart = [];
+    updateCartUI();
 }
 
 // ==================== INIT ====================

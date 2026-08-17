@@ -1,0 +1,7 @@
+name = "instanpay-proxy"
+main = "worker.js"
+compatibility_date = "2026-08-17"
+
+[vars]
+INSTANPAY_API = "https://instanpay.net"
+ALLOWED_ORIGIN = "*"
