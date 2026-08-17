@@ -1,8 +1,20 @@
+// ==================== RDAP ENDPOINTS ====================
+const rdapEndpoints = {
+    '.com':   'https://rdap.verisign.com/com/v1/domain/',
+    '.net':   'https://rdap.verisign.com/net/v1/domain/',
+    '.org':   'https://rdap.publicinterestregistry.org/rdap/domain/',
+    '.id':    'https://rdap.pandi.id/domain/',
+    '.io':    'https://rdap.centralnic.com/io/domain/',
+    '.dev':   'https://pubapi.registry.google/rdap/domain/',
+    '.store': 'https://rdap.radix.host/rdap/domain/',
+    '.xyz':   'https://rdap.centralnic.com/xyz/domain/',
+    '.site':  'https://rdap.centralnic.com/site/domain/',
+};
+
 // ==================== PRICING DATA ====================
 const pricingData = [
     { ext: '.com', normal: 189000, promo: 47250, discount: 75 },
     { ext: '.id', normal: 299000, promo: 56810, discount: 81 },
-    { ext: '.co.id', normal: 149000, promo: 44700, discount: 70 },
     { ext: '.net', normal: 179000, promo: 53700, discount: 70 },
     { ext: '.org', normal: 179000, promo: 53700, discount: 70 },
     { ext: '.io', normal: 499000, promo: 174650, discount: 65 },
@@ -11,6 +23,23 @@ const pricingData = [
     { ext: '.xyz', normal: 99000, promo: 19800, discount: 80 },
     { ext: '.site', normal: 149000, promo: 29800, discount: 80 },
 ];
+
+// ==================== RDAP CHECK ====================
+function checkDomainRDAP(domain) {
+    const ext = '.' + domain.split('.').slice(-1)[0];
+    const baseUrl = rdapEndpoints[ext];
+    if (!baseUrl) return Promise.resolve({ available: null, error: 'TLD tidak didukung' });
+
+    return fetch(baseUrl + domain)
+        .then(function(response) {
+            if (response.ok) return { available: false, status: 'registered' };
+            if (response.status === 404) return { available: true, status: 'available' };
+            return { available: null, status: 'error' };
+        })
+        .catch(function() {
+            return { available: null, status: 'error' };
+        });
+}
 
 // ==================== CART ====================
 let cart = [];
@@ -90,58 +119,87 @@ function searchDomain() {
     const extEl = document.getElementById('domain-ext');
     const resultsEl = document.getElementById('search-results');
 
-    const name = nameEl.value.trim().toLowerCase();
+    const name = nameEl.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
     if (!name) {
         nameEl.focus();
         return;
     }
 
+    const extensions = ['.com', '.id', '.net', '.org', '.io', '.dev', '.store', '.xyz', '.site'];
+    var checkDomains = extensions.map(function(ext) {
+        return name + ext;
+    });
+
+    // Show loading with individual items
     resultsEl.innerHTML =
         '<div class="search-loading">' +
             '<div class="spinner"></div>' +
-            '<p>Mencari ketersediaan domain...</p>' +
+            '<p>Mengecek ketersediaan domain via RDAP...</p>' +
         '</div>';
 
-    setTimeout(function() {
-        const extensions = ['.com', '.id', '.co.id', '.net', '.org', '.io'];
-        const results = extensions.map(function(ext) {
-            const fullDomain = name + ext;
-            const available = Math.random() > 0.3;
-            const priceData = pricingData.find(function(p) { return p.ext === ext; });
-            const price = priceData ? priceData.promo : 99000;
-            return {
-                domain: fullDomain,
-                ext: ext,
-                available: available,
-                price: price
-            };
-        });
+    // Show placeholders first
+    var placeholderHTML = checkDomains.map(function(domain) {
+        var ext = '.' + domain.split('.').slice(-1)[0];
+        return '<div class="search-result-item checking" id="result-' + domain.replace(/\./g, '-') + '">' +
+            '<div>' +
+                '<div class="domain-name">' + domain + '</div>' +
+                '<div class="domain-status" style="color:var(--gray)">Mengecek...</div>' +
+            '</div>' +
+            '<div style="text-align:right">' +
+                '<div class="domain-price"><div class="mini-spinner"></div></div>' +
+            '</div>' +
+        '</div>';
+    }).join('');
 
-        resultsEl.innerHTML = results.map(function(r) {
-            if (r.available) {
-                return '<div class="search-result-item">' +
-                    '<div>' +
-                        '<div class="domain-name">' + r.domain + '</div>' +
-                        '<div class="domain-status available">Tersedia</div>' +
-                    '</div>' +
-                    '<div style="text-align:right">' +
-                        '<div class="domain-price"><strong>' + formatRupiah(r.price) + '</strong>/thn</div>' +
-                        '<button class="btn btn-primary" style="margin-top:8px;padding:8px 16px;font-size:0.85rem" onclick="addToCart(\'' + r.ext + '\', ' + r.price + ')">Tambah</button>' +
-                    '</div>' +
-                '</div>';
-            } else {
-                return '<div class="search-result-item">' +
-                    '<div>' +
-                        '<div class="domain-name">' + r.domain + '</div>' +
-                        '<div class="domain-status taken">Sudah terdaftar</div>' +
-                    '</div>' +
-                    '<div style="text-align:right">' +
-                        '<div class="domain-price" style="color:var(--gray)">—</div>' +
-                    '</div>' +
-                '</div>';
-            }
-        }).join('');
-    }, 1500);
+    setTimeout(function() {
+        resultsEl.innerHTML = placeholderHTML;
+
+        // Check each domain via RDAP
+        checkDomains.forEach(function(domain) {
+            var ext = '.' + domain.split('.').slice(-1)[0];
+            var priceData = pricingData.find(function(p) { return p.ext === ext; });
+            var price = priceData ? priceData.promo : 99000;
+            var elId = 'result-' + domain.replace(/\./g, '-');
+            var el = document.getElementById(elId);
+
+            checkDomainRDAP(domain).then(function(result) {
+                if (!el) return;
+
+                if (result.available === true) {
+                    el.className = 'search-result-item';
+                    el.innerHTML =
+                        '<div>' +
+                            '<div class="domain-name">' + domain + '</div>' +
+                            '<div class="domain-status available">Tersedia</div>' +
+                        '</div>' +
+                        '<div style="text-align:right">' +
+                            '<div class="domain-price"><strong>' + formatRupiah(price) + '</strong>/thn</div>' +
+                            '<button class="btn btn-primary" style="margin-top:8px;padding:8px 16px;font-size:0.85rem" onclick="addToCart(\'' + ext + '\', ' + price + ')">Tambah</button>' +
+                        '</div>';
+                } else if (result.available === false) {
+                    el.className = 'search-result-item taken';
+                    el.innerHTML =
+                        '<div>' +
+                            '<div class="domain-name">' + domain + '</div>' +
+                            '<div class="domain-status taken">Sudah terdaftar</div>' +
+                        '</div>' +
+                        '<div style="text-align:right">' +
+                            '<div class="domain-price" style="color:var(--gray)">—</div>' +
+                        '</div>';
+                } else {
+                    el.className = 'search-result-item';
+                    el.innerHTML =
+                        '<div>' +
+                            '<div class="domain-name">' + domain + '</div>' +
+                            '<div class="domain-status" style="color:var(--gray)">Gagal mengecek</div>' +
+                        '</div>' +
+                        '<div style="text-align:right">' +
+                            '<div class="domain-price" style="color:var(--gray)">—</div>' +
+                        '</div>';
+                }
+            });
+        });
+    }, 300);
 }
 
 // ==================== POPULATE PRICING TABLE ====================
