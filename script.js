@@ -1,6 +1,6 @@
 // ==================== CONFIG ====================
 // Ganti URL ini dengan URL Worker Cloudflare kamu setelah deploy
-const API_BASE = window.location.origin + '/api';
+const API_BASE = 'https://domainku-api.ikhsanfedly13.workers.dev/api';
 const rdapEndpoints = {
     '.com':   'https://rdap.verisign.com/com/v1/domain/',
     '.net':   'https://rdap.verisign.com/net/v1/domain/',
