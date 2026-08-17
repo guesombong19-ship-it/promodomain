@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DomainKu - Promo Kemerdekaan RI ke-81</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="#" class="logo">
+                <span class="logo-icon">DR</span> DomainKu
+            </a>
+            <ul class="nav-links">
+                <li><a href="#promo">Promo</a></li>
+                <li><a href="#search">Cari Domain</a></li>
+                <li><a href="#pricing">Harga</a></li>
+                <li><a href="#features">Fitur</a></li>
+            </ul>
+            <button class="nav-toggle" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-bg-effects">
+            <div class="confetti" id="confetti-container"></div>
+        </div>
+        <div class="container hero-content">
+            <div class="hero-badge">17 AGUSTUS 2026 - HUT RI KE-81</div>
+            <h1>Dirgahayu Indonesia!</h1>
+            <h2>Sambut Kemerdekaan dengan <span class="highlight">Diskon Hingga 81%</span></h2>
+            <p>Dapatkan domain impianmu dengan harga spesial kemerdekaan. Berlaku dari 1 Agustus - 31 Agustus 2026.</p>
+            <div class="hero-cta">
+                <a href="#search" class="btn btn-primary">Cari Domain Sekarang</a>
+                <a href="#promo" class="btn btn-outline">Lihat Promo</a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-number" data-target="50000">0</span>+
+                    <span class="stat-label">Domain Terjual</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number" data-target="99">0</span>%
+                    <span class="stat-label">Uptime</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number" data-target="24">0</span>/7
+                    <span class="stat-label">Support</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="promo" class="promo-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">MERDEKA!</span>
+                <h2>Promo Spesial Kemerdekaan</h2>
+                <p>Jangan lewatkan penawaran terbatas ini!</p>
+            </div>
+            <div class="promo-cards">
+                <div class="promo-card">
+                    <div class="promo-flag"></div>
+                    <div class="promo-discount">81% OFF</div>
+                    <h3>Domain .id</h3>
+                    <p>Cocok untuk bisnis lokal Indonesia</p>
+                    <div class="promo-price">
+                        <span class="price-old">Rp 299.000</span>
+                        <span class="price-new">Rp 56.810</span>
+                        <span class="price-period">/tahun</span>
+                    </div>
+                    <ul class="promo-features">
+                        <li>Gratis WHOIS Privacy</li>
+                        <li>DNS Management</li>
+                        <li>Forwarding Domain</li>
+                    </ul>
+                    <button class="btn btn-primary btn-block" onclick="addToCart('.id', 56810)">Pesan Sekarang</button>
+                </div>
+                <div class="promo-card featured">
+                    <div class="promo-badge">TERLARIS</div>
+                    <div class="promo-flag"></div>
+                    <div class="promo-discount">75% OFF</div>
+                    <h3>Domain .com</h3>
+                    <p>Pilihan terbaik untuk website global</p>
+                    <div class="promo-price">
+                        <span class="price-old">Rp 189.000</span>
+                        <span class="price-new">Rp 47.250</span>
+                        <span class="price-period">/tahun</span>
+                    </div>
+                    <ul class="promo-features">
+                        <li>Gratis WHOIS Privacy</li>
+                        <li>DNS Management</li>
+                        <li>SSL Certificate</li>
+                        <li>Email Forwarding</li>
+                    </ul>
+                    <button class="btn btn-primary btn-block" onclick="addToCart('.com', 47250)">Pesan Sekarang</button>
+                </div>
+                <div class="promo-card">
+                    <div class="promo-flag"></div>
+                    <div class="promo-discount">70% OFF</div>
+                    <h3>Domain .net / .org</h3>
+                    <p>Untuk organisasi dan komunitas</p>
+                    <div class="promo-price">
+                        <span class="price-old">Rp 179.000</span>
+                        <span class="price-new">Rp 53.700</span>
+                        <span class="price-period">/tahun</span>
+                    </div>
+                    <ul class="promo-features">
+                        <li>Gratis WHOIS Privacy</li>
+                        <li>DNS Management</li>
+                        <li>Forwarding Domain</li>
+                    </ul>
+                    <button class="btn btn-primary btn-block" onclick="addToCart('.net/.org', 53700)">Pesan Sekarang</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="search" class="search-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">CEK KETERSEDIAAN</span>
+                <h2>Cari Domain Impianmu</h2>
+                <p>Masukkan nama domain yang kamu inginkan</p>
+            </div>
+            <div class="search-box">
+                <div class="search-input-wrapper">
+                    <input type="text" id="domain-search" placeholder="contoh: mywebsite" autocomplete="off">
+                    <select id="domain-ext">
+                        <option value=".com">.com</option>
+                        <option value=".id">.id</option>
+                        <option value=".co.id">.co.id</option>
+                        <option value=".net">.net</option>
+                        <option value=".org">.org</option>
+                        <option value=".io">.io</option>
+                        <option value=".dev">.dev</option>
+                        <option value=".store">.store</option>
+                    </select>
+                    <button class="btn btn-primary" id="search-btn" onclick="searchDomain()">Cari</button>
+                </div>
+                <div id="search-results" class="search-results"></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="pricing" class="pricing-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">DAFTAR HARGA</span>
+                <h2>Harga Lengkap Domain</h2>
+                <p>Semua harga sudah termasuk diskon kemerdekaan</p>
+            </div>
+            <div class="pricing-table-wrapper">
+                <table class="pricing-table">
+                    <thead>
+                        <tr>
+                            <th>Ekstensi</th>
+                            <th>Harga Normal</th>
+                            <th>Harga Promo</th>
+                            <th>Diskon</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pricing-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">MENGAPA KAMI?</span>
+                <h2>Keunggulan DomainKu</h2>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Aktif Instan</h3>
+                    <p>Domain langsung aktif setelah pembayaran dikonfirmasi.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>WHOIS Privacy</h3>
+                    <p>Data pribadi Anda terlindungi dari publik secara gratis.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛠️</div>
+                    <h3>DNS Management</h3>
+                    <p>Kelola DNS domain Anda dengan mudah melalui panel.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>SSL Gratis</h3>
+                    <p>Setiap domain dilengkapi SSL certificate gratis.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💬</div>
+                    <h3>Support 24/7</h3>
+                    <p>Tim kami siap membantu kapan saja via chat & WhatsApp.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3>Auto-Renewal</h3>
+                    <p>Perpanjangan otomatis agar domain tidak kedaluwarsa.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <div class="container">
+            <h2>Jangan Sampai Kehabisan!</h2>
+            <p>Promo kemerdekaan ini berlaku terbatas hingga 31 Agustus 2026. Miliki domain sekarang!</p>
+            <a href="#search" class="btn btn-primary btn-lg">Mulai Cari Domain</a>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="#" class="logo"><span class="logo-icon">DR</span> DomainKu</a>
+                    <p>Penyedia domain terpercaya di Indonesia. Rayakan kemerdekaan bersama kami!</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Layanan</h4>
+                    <ul>
+                        <li><a href="#">Registrasi Domain</a></li>
+                        <li><a href="#">Transfer Domain</a></li>
+                        <li><a href="#">Hosting</a></li>
+                        <li><a href="#">SSL Certificate</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">Hubungi Kami</a></li>
+                        <li><a href="#">Status Server</a></li>
+                        <li><a href="#">Kebijakan Privasi</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Kontak</h4>
+                    <ul>
+                        <li>WhatsApp: +62 812-3456-7890</li>
+                        <li>Email: support@domainku.id</li>
+                        <li>Jakarta, Indonesia</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 DomainKu. Selamat Hari Kemerdekaan RI ke-81! 🇮🇩</p>
+            </div>
+        </div>
+    </footer>
+
+    <div class="cart-panel" id="cart-panel">
+        <div class="cart-header">
+            <h3>Keranjang</h3>
+            <button class="cart-close" onclick="toggleCart()">&times;</button>
+        </div>
+        <div class="cart-body" id="cart-body">
+            <p class="cart-empty">Keranjang masih kosong</p>
+        </div>
+        <div class="cart-footer" id="cart-footer" style="display:none;">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cart-total">Rp 0</span>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="checkout()">Checkout</button>
+        </div>
+    </div>
+
+    <button class="cart-toggle" id="cart-toggle" onclick="toggleCart()">
+        🛒 <span class="cart-count" id="cart-count">0</span>
+    </button>
+
+    <script src="script.js"></script>
+</body>
+</html>
