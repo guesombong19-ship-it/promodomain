@@ -17,13 +17,13 @@ const rdapEndpoints = {
 const pricingData = [
     { ext: '.com', normal: 189000, promo: 47250, discount: 75 },
     { ext: '.id', normal: 299000, promo: 56810, discount: 81 },
-    { ext: '.net', normal: 179000, promo: 53700, discount: 70 },
-    { ext: '.org', normal: 179000, promo: 53700, discount: 70 },
-    { ext: '.io', normal: 499000, promo: 174650, discount: 65 },
-    { ext: '.dev', normal: 399000, promo: 159600, discount: 60 },
-    { ext: '.store', normal: 599000, promo: 179700, discount: 70 },
-    { ext: '.xyz', normal: 99000, promo: 19800, discount: 80 },
-    { ext: '.site', normal: 149000, promo: 29800, discount: 80 },
+    { ext: '.net', normal: 179000, promo: 179000, discount: 0 },
+    { ext: '.org', normal: 179000, promo: 179000, discount: 0 },
+    { ext: '.io', normal: 499000, promo: 499000, discount: 0 },
+    { ext: '.dev', normal: 399000, promo: 399000, discount: 0 },
+    { ext: '.store', normal: 599000, promo: 599000, discount: 0 },
+    { ext: '.xyz', normal: 99000, promo: 99000, discount: 0 },
+    { ext: '.site', normal: 149000, promo: 149000, discount: 0 },
 ];
 
 // ==================== RDAP CHECK ====================
@@ -164,14 +164,19 @@ function searchDomain() {
                 if (!el) return;
 
                 if (result.available === true) {
+                    var discount = priceData ? priceData.discount : 0;
+                    var promoTag = discount > 0 ? '<span style="background:var(--red);color:white;padding:1px 8px;border-radius:50px;font-size:0.7rem;margin-left:6px;">PROMO ' + discount + '%</span>' : '';
+                    var priceDisplay = discount > 0
+                        ? '<span style="text-decoration:line-through;color:var(--gray);font-size:0.8rem;margin-right:4px;">' + formatRupiah(priceData.normal) + '</span><strong>' + formatRupiah(price) + '</strong>/thn'
+                        : '<strong>' + formatRupiah(price) + '</strong>/thn';
                     el.className = 'search-result-item';
                     el.innerHTML =
                         '<div>' +
-                            '<div class="domain-name">' + domain + '</div>' +
+                            '<div class="domain-name">' + domain + promoTag + '</div>' +
                             '<div class="domain-status available">Tersedia</div>' +
                         '</div>' +
                         '<div style="text-align:right">' +
-                            '<div class="domain-price"><strong>' + formatRupiah(price) + '</strong>/thn</div>' +
+                            '<div class="domain-price">' + priceDisplay + '</div>' +
                             '<button class="btn btn-primary" style="margin-top:8px;padding:8px 16px;font-size:0.85rem" onclick="addToCart(\'' + ext + '\', ' + price + ')">Tambah</button>' +
                         '</div>';
                 } else if (result.available === false) {
@@ -204,11 +209,17 @@ function searchDomain() {
 function populatePricingTable() {
     const tbody = document.getElementById('pricing-body');
     tbody.innerHTML = pricingData.map(function(item) {
+        var priceCol, discountCol;
+        if (item.discount > 0) {
+            priceCol = '<td class="old-price">' + formatRupiah(item.normal) + '</td><td class="new-price">' + formatRupiah(item.promo) + '</td>';
+            discountCol = '<td><span class="discount-badge">' + item.discount + '% OFF</span></td>';
+        } else {
+            priceCol = '<td>-</td><td>' + formatRupiah(item.normal) + '</td>';
+            discountCol = '<td><span style="color:var(--gray);font-size:0.8rem;">Harga Normal</span></td>';
+        }
         return '<tr>' +
             '<td><strong>' + item.ext + '</strong></td>' +
-            '<td class="old-price">' + formatRupiah(item.normal) + '</td>' +
-            '<td class="new-price">' + formatRupiah(item.promo) + '</td>' +
-            '<td><span class="discount-badge">' + item.discount + '% OFF</span></td>' +
+            priceCol + discountCol +
             '<td><button class="btn btn-primary" onclick="addToCart(\'' + item.ext + '\', ' + item.promo + ')">Pesan</button></td>' +
         '</tr>';
     }).join('');

@@ -9,7 +9,7 @@ INSTANPAY_BASE = "https://instanpay.net"
 [[d1_databases]]
 binding = "DB"
 database_name = "domainku-db"
-database_id = "PLACEHOLDER_GANTI_DENGAN_ID_D1_KAMU"
+database_id = "aed33eca-40f0-47a5-b679-e6749031435f"
 
 # Secret: sandbox API key (set via: wrangler secret put INSTANPAY_API_KEY)
 # INSTANPAY_API_KEY = "sk_test_obrt44il2aakve25"  # jangan hardcode, pakai secret
