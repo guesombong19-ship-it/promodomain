@@ -486,6 +486,199 @@ function showPaymentSuccess(data) {
     updateCartUI();
 }
 
+// ==================== AUTH ====================
+let currentUser = null;
+let authToken = localStorage.getItem('dku_token');
+
+function authHeaders() {
+    return authToken ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken } : { 'Content-Type': 'application/json' };
+}
+
+function openAuthModal(form) {
+    showAuthForm(form || 'login');
+    document.getElementById('auth-overlay').classList.add('show');
+    document.getElementById('auth-modal').classList.add('open');
+}
+
+function closeAuthModal() {
+    document.getElementById('auth-overlay').classList.remove('show');
+    document.getElementById('auth-modal').classList.remove('open');
+    document.querySelectorAll('.auth-alert').forEach(function(a) { a.style.display = 'none'; });
+}
+
+function showAuthForm(name) {
+    document.querySelectorAll('.auth-form').forEach(function(f) { f.style.display = 'none'; });
+    document.getElementById('auth-' + name).style.display = 'block';
+}
+
+function showAuthAlert(id, msg, type) {
+    var el = document.getElementById(id);
+    el.textContent = msg;
+    el.className = 'auth-alert ' + type;
+    el.style.display = 'block';
+}
+
+function doRegister() {
+    var name = document.getElementById('reg-name').value.trim();
+    var email = document.getElementById('reg-email').value.trim();
+    var password = document.getElementById('reg-password').value;
+    if (!name || !email || !password) return showAuthAlert('register-alert', 'Semua field wajib diisi', 'error');
+
+    fetch(API_BASE + '/auth/register', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ name: name, email: email, password: password }) })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.success) {
+            showAuthAlert('register-alert', 'Registrasi berhasil! Silakan masuk.', 'success');
+            setTimeout(function() { showAuthForm('login'); }, 1500);
+        } else {
+            showAuthAlert('register-alert', res.error || 'Gagal mendaftar', 'error');
+        }
+    })
+    .catch(function() { showAuthAlert('register-alert', 'Terjadi kesalahan jaringan', 'error'); });
+}
+
+function doLogin() {
+    var email = document.getElementById('login-email').value.trim();
+    var password = document.getElementById('login-password').value;
+    if (!email || !password) return showAuthAlert('login-alert', 'Email dan password wajib diisi', 'error');
+
+    fetch(API_BASE + '/auth/login', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ email: email, password: password }) })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.success) {
+            authToken = res.data.token;
+            currentUser = res.data.user;
+            localStorage.setItem('dku_token', authToken);
+            localStorage.setItem('dku_user', JSON.stringify(currentUser));
+            updateNavAuth();
+            closeAuthModal();
+        } else {
+            showAuthAlert('login-alert', res.error || 'Login gagal', 'error');
+        }
+    })
+    .catch(function() { showAuthAlert('login-alert', 'Terjadi kesalahan jaringan', 'error'); });
+}
+
+function doForgotPassword() {
+    var email = document.getElementById('forgot-email').value.trim();
+    if (!email) return showAuthAlert('forgot-alert', 'Email wajib diisi', 'error');
+
+    fetch(API_BASE + '/auth/forgot-password', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ email: email }) })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.success) {
+            showAuthAlert('forgot-alert', 'Reset token: ' + res.reset_token, 'success');
+            document.getElementById('forgot-reset').style.display = 'block';
+        } else {
+            showAuthAlert('forgot-alert', res.error || 'Gagal', 'error');
+        }
+    })
+    .catch(function() { showAuthAlert('forgot-alert', 'Terjadi kesalahan jaringan', 'error'); });
+}
+
+function doResetPassword() {
+    var token = document.getElementById('reset-token').value.trim();
+    var password = document.getElementById('reset-password').value;
+    if (!token || !password) return showAuthAlert('forgot-alert', 'Token dan password wajib diisi', 'error');
+
+    fetch(API_BASE + '/auth/reset-password', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ token: token, password: password }) })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.success) {
+            showAuthAlert('forgot-alert', 'Password berhasil diubah! Silakan masuk.', 'success');
+            setTimeout(function() { showAuthForm('login'); }, 1500);
+        } else {
+            showAuthAlert('forgot-alert', res.error || 'Gagal', 'error');
+        }
+    })
+    .catch(function() { showAuthAlert('forgot-alert', 'Terjadi kesalahan jaringan', 'error'); });
+}
+
+function logout() {
+    fetch(API_BASE + '/auth/logout', { method: 'POST', headers: authHeaders() }).catch(function() {});
+    authToken = null;
+    currentUser = null;
+    localStorage.removeItem('dku_token');
+    localStorage.removeItem('dku_user');
+    updateNavAuth();
+    closeUserMenu();
+}
+
+function updateNavAuth() {
+    var authEl = document.getElementById('nav-auth');
+    var userEl = document.getElementById('nav-user');
+    if (currentUser) {
+        authEl.style.display = 'none';
+        userEl.style.display = 'block';
+        document.getElementById('user-name-nav').textContent = currentUser.name;
+        document.getElementById('user-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
+    } else {
+        authEl.style.display = 'flex';
+        userEl.style.display = 'none';
+    }
+}
+
+function toggleUserMenu() {
+    document.getElementById('user-menu').classList.toggle('show');
+}
+
+function closeUserMenu() {
+    document.getElementById('user-menu').classList.remove('show');
+}
+
+function checkExistingSession() {
+    if (authToken) {
+        fetch(API_BASE + '/auth/me', { headers: authHeaders() })
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+            if (res.success) {
+                currentUser = res.data;
+                updateNavAuth();
+            } else {
+                authToken = null;
+                localStorage.removeItem('dku_token');
+                localStorage.removeItem('dku_user');
+            }
+        })
+        .catch(function() {});
+    }
+}
+
+// ==================== DASHBOARD ====================
+function showDashboard() {
+    closeUserMenu();
+    document.getElementById('dash-overlay').classList.add('show');
+    document.getElementById('dashboard-modal').classList.add('open');
+    document.getElementById('dash-content').innerHTML = '<div class="dash-loading"><div class="spinner"></div><p>Memuat riwayat...</p></div>';
+
+    fetch(API_BASE + '/transactions', { headers: authHeaders() })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.success && res.data.length > 0) {
+            var html = '<table class="dash-table"><thead><tr><th>Tanggal</th><th>Domain</th><th>Metode</th><th>Total</th><th>Status</th></tr></thead><tbody>';
+            res.data.forEach(function(t) {
+                var date = new Date(t.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                var method = t.payment_method === 'qris' ? 'QRIS' : t.payment_method.replace('crypto_', '').toUpperCase();
+                var amount = t.total_amount ? formatRupiah(t.total_amount) : '-';
+                var statusClass = t.status === 'PAID' ? 'paid' : t.status === 'EXPIRED' ? 'expired' : 'pending';
+                html += '<tr><td>' + date + '</td><td>' + (t.domain || '-') + '</td><td>' + method + '</td><td>' + amount + '</td><td><span class="dash-status ' + statusClass + '">' + t.status + '</span></td></tr>';
+            });
+            html += '</tbody></table>';
+            document.getElementById('dash-content').innerHTML = html;
+        } else {
+            document.getElementById('dash-content').innerHTML = '<div class="dash-empty"><p>Belum ada riwayat transaksi</p></div>';
+        }
+    })
+    .catch(function() {
+        document.getElementById('dash-content').innerHTML = '<div class="dash-empty"><p>Gagal memuat data</p></div>';
+    });
+}
+
+function closeDashboard() {
+    document.getElementById('dash-overlay').classList.remove('show');
+    document.getElementById('dashboard-modal').classList.remove('open');
+}
+
 // ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', function() {
     populatePricingTable();
@@ -495,4 +688,15 @@ document.addEventListener('DOMContentLoaded', function() {
     setupScrollAnimation();
     setupSearchEnter();
     updateCartUI();
+    checkExistingSession();
+
+    // Close user menu on outside click
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.nav-user')) closeUserMenu();
+    });
+
+    // Enter key on login/register forms
+    document.getElementById('login-password').addEventListener('keypress', function(e) { if (e.key === 'Enter') doLogin(); });
+    document.getElementById('reg-password').addEventListener('keypress', function(e) { if (e.key === 'Enter') doRegister(); });
+    document.getElementById('forgot-email').addEventListener('keypress', function(e) { if (e.key === 'Enter') doForgotPassword(); });
 });

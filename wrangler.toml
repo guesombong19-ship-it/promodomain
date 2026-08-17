@@ -1,7 +1,15 @@
-name = "instanpay-proxy"
+name = "domainku-api"
 main = "worker.js"
 compatibility_date = "2026-08-17"
 
 [vars]
-INSTANPAY_API = "https://instanpay.net"
-ALLOWED_ORIGIN = "*"
+INSTANPAY_BASE = "https://instanpay.net"
+
+# D1 Database binding
+[[d1_databases]]
+binding = "DB"
+database_name = "domainku-db"
+database_id = "PLACEHOLDER_GANTI_DENGAN_ID_D1_KAMU"
+
+# Secret: sandbox API key (set via: wrangler secret put INSTANPAY_API_KEY)
+# INSTANPAY_API_KEY = "sk_test_obrt44il2aakve25"  # jangan hardcode, pakai secret
